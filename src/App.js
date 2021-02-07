@@ -14,11 +14,7 @@ export default function App() {
       <BraftEditor
         // value={html}
         // defaultValue={html}
-        // type="html"
-        controls={[
-          "font-size",
-          { key: "bold", title: "点我加粗", text: "加粗了加粗了" }
-        ]}
+        type="html"
         excludeControls={["font-size"]}
         extendControls={[
           {
@@ -33,6 +29,7 @@ export default function App() {
             }
           }
         ]}
+        onSubmit={(value) => console.log(value)}
         // onChange={onChange}
         // maxLength={maxLength}
         // onReachMaxLength={() => alert(`到${maxLength}了`)}

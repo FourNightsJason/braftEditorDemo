@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // 引入编辑器组件
 import BraftEditor from "braft-editor";
+import { ContentUtils } from "braft-utils";
 // 引入编辑器样式
 import "braft-editor/dist/index.css";
 // 新增表格模块
@@ -64,6 +65,7 @@ BraftEditor.use([
 const controlsInit = [
   "undo",
   "redo",
+  "submit",
   "separator",
 
   "font-size",
@@ -76,6 +78,7 @@ const controlsInit = [
   "italic",
   "underline",
   "strike-through",
+  "overline",
   "separator",
 
   "superscript",
@@ -105,6 +108,8 @@ const controlsInit = [
   "clear"
 ];
 
+const extendControlsInit = [];
+
 const Editor = (props) => {
   const {
     type,
@@ -112,6 +117,8 @@ const Editor = (props) => {
     onChange: propsOnChange,
     defaultValue: propsDefaultValue,
     controls: propsControls,
+    extendControls: propsExtendControls,
+    onSubmit,
     ...restProps
   } = props;
   const typeObj = {
@@ -123,7 +130,42 @@ const Editor = (props) => {
   const [value, setValue] = useState(
     BraftEditor.createEditorState(propsValue || propsDefaultValue)
   );
-  const controls = [...propsControls, ...controlsInit];
+  const editorRef = useRef();
+  // const addControl = () => {
+  controlsInit.splice(2, 1, {
+    key: "submit",
+    type: "button",
+    text: <strong>S</strong>,
+    onClick: () => {
+      const editor = editorRef.current;
+      const nowEditorState = editor.getValue();
+      let value = nowEditorState;
+      if (typeObj[type]) {
+        value = nowEditorState[typeObj[type]](type === "raw");
+      }
+      onSubmit && onSubmit(value);
+    }
+  });
+  controlsInit.splice(13, 1, {
+    key: "overline",
+    type: "button",
+    text: <strong style={{ textDecoration: "overline" }}>O</strong>,
+    onClick: () => {
+      const selectText = ContentUtils.getSelectionText(value);
+      console.log(selectText);
+
+      const newES = ContentUtils.insertHTML(
+        value,
+        `<p><span style="text-decoration: overline">${selectText}</span></p>`
+      );
+      setValue(newES);
+    }
+  });
+  // };
+  // useEffect(addControl, []);
+  // const controls = [...propsControls, ...controlsInit];
+  const controls = propsControls || controlsInit;
+  const extendControls = [...propsExtendControls, ...extendControlsInit];
   const defaultValue = BraftEditor.createEditorState(propsDefaultValue);
   const onChange = (editorState) => {
     let typeReturn = editorState;
@@ -136,10 +178,12 @@ const Editor = (props) => {
   return (
     <BraftEditor
       id="editor"
+      ref={editorRef}
       value={value}
       defaultValue={defaultValue}
       onChange={onChange}
       controls={controls}
+      extendControls={extendControls}
       {...restProps}
     />
   );
