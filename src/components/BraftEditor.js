@@ -19,6 +19,8 @@ import "braft-extensions/dist/emoticon.css";
 // import Emoticon, { defaultEmoticons } from "braft-extensions/dist/emoticon";
 // 新增Mention模块
 // import Mention, { defaultSuggestFilter } from "braft-extensions/dist/mention";
+// 新增字数限制模块
+import MaxLength from "braft-extensions/dist/max-length";
 
 // const emoticons = defaultEmoticons.map((item) =>
 //   require(`braft-extensions/dist/assets/${item}`)
@@ -44,21 +46,72 @@ const colorPickerOptions = { includeEditors: ["editor"], theme: "dark" };
 //   closeOnBlur: false,
 //   closeOnSelect: false
 // };
+const maxLengthOptions = {
+  defaultValue: 100,
+  includeEditors: ["editor"]
+};
 
 BraftEditor.use([
   Table(tableOptions),
   Markdown(markdownOptions),
   CodeHighlighter(codeHighlighterOptions),
-  ColorPicker(colorPickerOptions)
+  ColorPicker(colorPickerOptions),
   // Emoticon(emoticonOptions),
-  // mentionExtension
+  // mentionExtension,
+  MaxLength(maxLengthOptions)
 ]);
+
+const controlsInit = [
+  "undo",
+  "redo",
+  "separator",
+
+  "font-size",
+  "line-height",
+  "letter-spacing",
+  "separator",
+
+  "text-color",
+  "bold",
+  "italic",
+  "underline",
+  "strike-through",
+  "separator",
+
+  "superscript",
+  "subscript",
+  "remove-styles",
+  "emoji",
+  "separator",
+  "text-indent",
+  "text-align",
+  "separator",
+
+  "headings",
+  "list-ul",
+  "list-ol",
+  "blockquote",
+  "code",
+  "separator",
+
+  "link",
+  "separator",
+  "hr",
+  "separator",
+
+  "media",
+  "separator",
+
+  "clear"
+];
 
 const Editor = (props) => {
   const {
     type,
     value: propsValue,
     onChange: propsOnChange,
+    defaultValue: propsDefaultValue,
+    controls: propsControls,
     ...restProps
   } = props;
   const typeObj = {
@@ -67,7 +120,11 @@ const Editor = (props) => {
     raw: "toRAW",
     text: "toText"
   };
-  const [value, setValue] = useState(BraftEditor.createEditorState(propsValue));
+  const [value, setValue] = useState(
+    BraftEditor.createEditorState(propsValue || propsDefaultValue)
+  );
+  const controls = [...propsControls, ...controlsInit];
+  const defaultValue = BraftEditor.createEditorState(propsDefaultValue);
   const onChange = (editorState) => {
     let typeReturn = editorState;
     if (typeObj[type]) {
@@ -77,7 +134,14 @@ const Editor = (props) => {
     propsOnChange && propsOnChange(typeReturn);
   };
   return (
-    <BraftEditor id="editor" value={value} onChange={onChange} {...restProps} />
+    <BraftEditor
+      id="editor"
+      value={value}
+      defaultValue={defaultValue}
+      onChange={onChange}
+      controls={controls}
+      {...restProps}
+    />
   );
 };
 
