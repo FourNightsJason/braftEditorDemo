@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 // 引入编辑器组件
 import BraftEditor from "braft-editor";
 import { ContentUtils } from "braft-utils";
+import "./styles/braftEditor.scss";
 // 引入编辑器样式
 import "braft-editor/dist/index.css";
 // 新增表格模块
@@ -48,7 +49,7 @@ const colorPickerOptions = { includeEditors: ["editor"], theme: "dark" };
 //   closeOnSelect: false
 // };
 const maxLengthOptions = {
-  defaultValue: 100,
+  // defaultValue: 100,
   includeEditors: ["editor"]
 };
 
@@ -119,6 +120,7 @@ const Editor = (props) => {
     controls: propsControls,
     extendControls: propsExtendControls,
     onSubmit,
+    className,
     ...restProps
   } = props;
   const typeObj = {
@@ -128,7 +130,7 @@ const Editor = (props) => {
     text: "toText"
   };
   const [value, setValue] = useState(
-    BraftEditor.createEditorState(propsValue || propsDefaultValue)
+    BraftEditor.createEditorState(propsValue || propsDefaultValue || "")
   );
   const editorRef = useRef();
   // const addControl = () => {
@@ -141,7 +143,9 @@ const Editor = (props) => {
       const nowEditorState = editor.getValue();
       let value = nowEditorState;
       if (typeObj[type]) {
-        value = nowEditorState[typeObj[type]](type === "raw");
+        value = nowEditorState[typeObj[String(type).toLowerCase()]](
+          type === "raw"
+        );
       }
       onSubmit && onSubmit(value);
     }
@@ -149,14 +153,13 @@ const Editor = (props) => {
   controlsInit.splice(13, 1, {
     key: "overline",
     type: "button",
-    text: <strong style={{ textDecoration: "overline" }}>O</strong>,
+    text: <strong style={{ borderTop: "2px solid" }}>O</strong>,
     onClick: () => {
+      // console.log(value.getCurrentInlineStyle());
       const selectText = ContentUtils.getSelectionText(value);
-      console.log(selectText);
-
       const newES = ContentUtils.insertHTML(
         value,
-        `<p><span style="text-decoration: overline">${selectText}</span></p>`
+        `<p><span>${selectText}</span></p>`
       );
       setValue(newES);
     }
@@ -184,6 +187,29 @@ const Editor = (props) => {
       onChange={onChange}
       controls={controls}
       extendControls={extendControls}
+      className={`braft-editor-style ${className}`}
+      contentClassName={`content-style`}
+      customStyleMap={{ OVERLINE: { textDecoration: "overline" } }}
+      imageControls={[
+        "float-left", // 设置图片左浮动
+        "float-right", // 设置图片右浮动
+        "align-left", // 设置图片居左
+        "align-center", // 设置图片居中
+        "align-right", // 设置图片居右
+        "link", // 设置图片超链接
+        "size", // 设置图片尺寸
+        "remove", // 删除图片
+        // 自定义部分
+        {
+          text: <span>F</span>,
+          // render: (media) => {
+          //   console.log(media);
+          // },
+          onClick: (block, b, c) => {
+            console.log(block, b, c);
+          }
+        }
+      ]}
       {...restProps}
     />
   );
